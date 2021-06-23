@@ -1,5 +1,6 @@
 import numpy
 
+
 def arclen(points):
     """Takes points is a list with vectors of the points in every dimension e.g. [xs, ys, zs]"""
     p1 = numpy.array([x[:-1] for x in points])
@@ -11,3 +12,14 @@ def arclen(points):
         arclen[i] = arclen[i - 1] + dist[i - 1]
 
     return numpy.array(arclen)
+
+
+def lags(vals, n):
+    lagged_lists = []
+
+    for i in range(0, n + 1):
+        new_lag = vals[i:(len(vals) - (n - i))]
+        lagged_lists.append(new_lag)
+
+    return lagged_lists
+

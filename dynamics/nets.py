@@ -27,21 +27,27 @@ class RK4N(nn.Module):
         # Output.
         self.output = nn.Linear(hidden_size, input_size, bias=True)
 
-    def forward(self, x, p):
+    def forward(self, x, p=None):
+        if p is None:
+            p = torch.unsqueeze(torch.zeros(len(x)), 1)
         # We use the same neural net four times
-        k1 = self.one_step(torch.cat((x, p), 1))
-        k2 = self.one_step(torch.cat((x + 0.5 * k1, p), 1))
-        k3 = self.one_step(torch.cat((x + 0.5 * k2, p), 1))
-        k4 = self.one_step(torch.cat((x + k3, p), 1))
+        k1 = self.one_step(x, p, self.h)
+        k2 = self.one_step(x + 0.5 * k1, p, self.h)
+        k3 = self.one_step(x + 0.5 * k2, p, self.h)
+        k4 = self.one_step(x + k3, p, self.h)
         return x + (k1 + 2 * k2 + 2 * k3 + k4) / 6
 
-    def one_step(self, i):
+    def one_step(self, x, p=None, h=1):
+        if p is None:
+            p = torch.unsqueeze(torch.zeros(len(x)), 1)
+
+        i = torch.cat((x, p), 1)
         f = self.input(i)
 
         # Hidden layers.
         for i in range(self.num_hidden_layers - 1):
             name = 'h' + str(i)
-            f = self.hidden_layers[name](torch.relu(f))  # TODO: what activation function?
+            f = self.hidden_layers[name](torch.sigmoid(f))  # TODO: what activation function?
 
         # Output.
-        return self.h * self.output(torch.relu(f))  # TODO: same here
+        return h * self.output(torch.relu(f))  # TODO: same here
