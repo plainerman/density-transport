@@ -1,6 +1,7 @@
 import random
 
-samplesize = 20000
+
+samplesize = 50000
 
 def step_sample(i, a, b, samplesize):
     return (i / samplesize) * (b - a) + a
