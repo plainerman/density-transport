@@ -51,3 +51,6 @@ class RK4N(nn.Module):
 
         # Output.
         return h * self.output(torch.relu(f))  # TODO: same here
+
+    def save(self, path):
+        torch.save(self, path)
