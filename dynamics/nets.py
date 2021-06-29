@@ -31,13 +31,13 @@ class RK4N(nn.Module):
         if p is None:
             p = torch.unsqueeze(torch.zeros(len(x)), 1)
         # We use the same neural net four times
-        k1 = self.one_step(x, p, self.h)
-        k2 = self.one_step(x + 0.5 * k1, p, self.h)
-        k3 = self.one_step(x + 0.5 * k2, p, self.h)
-        k4 = self.one_step(x + k3, p, self.h)
+        k1 = self.h * self.one_step(x, p)
+        k2 = self.h * self.one_step(x + 0.5 * k1, p)
+        k3 = self.h * self.one_step(x + 0.5 * k2, p)
+        k4 = self.h * self.one_step(x + k3, p)
         return x + (k1 + 2 * k2 + 2 * k3 + k4) / 6
 
-    def one_step(self, x, p=None, h=1):
+    def one_step(self, x, p=None):
         if p is None:
             p = torch.unsqueeze(torch.zeros(len(x)), 1)
 
@@ -50,7 +50,7 @@ class RK4N(nn.Module):
             f = self.hidden_layers[name](torch.sigmoid(f))  # TODO: what activation function?
 
         # Output.
-        return h * self.output(torch.relu(f))  # TODO: same here
+        return self.output(torch.sigmoid(f))  # TODO: same here
 
     def save(self, path):
         torch.save(self, path)
