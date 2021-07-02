@@ -1,8 +1,10 @@
 from sklearn.preprocessing import StandardScaler
 import pyro.distributions as dist
 import torch
+import numpy as np
 
-def train(transform, base_dist, data, steps = 1001):
+
+def train(transform, base_dist, data, steps=1001):
     flow_dist_bimodal = dist.TransformedDistribution(base_dist, [transform])
 
     dataset = torch.tensor(data, dtype=torch.float)
@@ -17,9 +19,17 @@ def train(transform, base_dist, data, steps = 1001):
         if step % 200 == 0:
             print('step: {}, loss: {}'.format(step, loss.item()))
 
-    return transform
+    return flow_dist_bimodal, transform
 
-def samples_to_samples(A, B, count_bins = 32):
+
+def normal_to_samples(A, count_bins=32):
+    A_normalized = StandardScaler().fit_transform(A)
+    base_dist = dist.Normal(torch.zeros(1), torch.ones(1))
+
+    return train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, A_normalized)
+
+
+def samples_to_samples(A, B, count_bins=32):
     '''
     This function takes two list of samples and maps them with normalizing flows via a normal distribution
     :return:
@@ -30,12 +40,10 @@ def samples_to_samples(A, B, count_bins = 32):
 
     base_dist = dist.Normal(torch.zeros(1), torch.ones(1))
 
-    transform_normal_A = train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, A_normalized)
-    transform_normal_B = train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, B_normalized)
+    _, transform_normal_A = train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, A_normalized)
+    _, transform_normal_B = train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, B_normalized)
 
     return dist.transforms.ComposeTransform([transform_normal_A.inv, transform_normal_B])
-
-import numpy as np
 
 def main():
     dist_x1 = dist.Normal(torch.tensor([-3.0]), torch.tensor([2.0]))
@@ -57,6 +65,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
