@@ -4,11 +4,11 @@ import torch
 import numpy as np
 
 
-def train(transform, base_dist, data, steps=1001):
+def train(transform, base_dist, data, steps, lr):
     flow_dist_bimodal = dist.TransformedDistribution(base_dist, [transform])
 
     dataset = torch.tensor(data, dtype=torch.float)
-    optimizer = torch.optim.Adam(transform.parameters(), lr=1e-2)
+    optimizer = torch.optim.Adam(transform.parameters(), lr=lr)
     for step in range(steps):
         optimizer.zero_grad()
         loss = -flow_dist_bimodal.log_prob(dataset).mean()
@@ -22,26 +22,26 @@ def train(transform, base_dist, data, steps=1001):
     return flow_dist_bimodal, transform
 
 
-def normal_to_samples(A, count_bins=32):
-    A_normalized = StandardScaler().fit_transform(A)
+def normal_to_samples(A, normalize=False, count_bins=32, steps=1001, lr=1e-2):
+    A_normalized = StandardScaler().fit_transform(A) if normalize else A
     base_dist = dist.Normal(torch.zeros(1), torch.ones(1))
 
-    return train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, A_normalized)
+    return train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, A_normalized, steps, lr)
 
 
-def samples_to_samples(A, B, count_bins=32):
+def samples_to_samples(A, B, normalize=False, count_bins=32, steps=1001, lr=1e-2):
     '''
     This function takes two list of samples and maps them with normalizing flows via a normal distribution
     :return:
     '''
 
-    A_normalized = StandardScaler().fit_transform(A)
-    B_normalized = StandardScaler().fit_transform(B)
+    A_normalized = StandardScaler().fit_transform(A) if normalize else A
+    B_normalized = StandardScaler().fit_transform(B) if normalize else B
 
     base_dist = dist.Normal(torch.zeros(1), torch.ones(1))
 
-    _, transform_normal_A = train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, A_normalized)
-    _, transform_normal_B = train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, B_normalized)
+    _, transform_normal_A = train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, A_normalized, steps, lr)
+    _, transform_normal_B = train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, B_normalized, steps, lr)
 
     return dist.transforms.ComposeTransform([transform_normal_A.inv, transform_normal_B])
 
