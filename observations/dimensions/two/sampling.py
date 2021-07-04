@@ -4,8 +4,13 @@ import observations.dimensions.one.sampling as oneDimensionalObserve
 samplesizex = 200
 samplesizey = 200
 
+
 def cusp(xs):
     return xs[0]**3 - xs[0] * xs[1]
+
+
+def cusp_vectorized(X, Y):
+    return X**3 - X * Y
 
 
 def sample_beta_dir(delta=0.05):
