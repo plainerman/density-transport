@@ -4,8 +4,16 @@ import torch
 import numpy as np
 
 
-def train(transform, base_dist, data, steps, lr):
-    flow_dist_bimodal = dist.TransformedDistribution(base_dist, [transform])
+def train(transform, base_dist, data, steps, lr, normalize):
+    mean = np.mean(data)
+    s = np.sqrt(np.var(data))
+
+    if normalize:
+        # normalize with (x-u)/s
+        #data = (data - mean) / s
+        flow_dist_bimodal = dist.TransformedDistribution(base_dist, [transform, dist.transforms.AffineTransform(mean, s)])
+    else:
+        flow_dist_bimodal = dist.TransformedDistribution(base_dist, [transform])
 
     dataset = torch.tensor(data, dtype=torch.float)
     optimizer = torch.optim.Adam(transform.parameters(), lr=lr)
@@ -18,30 +26,33 @@ def train(transform, base_dist, data, steps, lr):
 
         if step % 200 == 0:
             print('step: {}, loss: {}'.format(step, loss.item()))
-
+    if normalize:
+        return flow_dist_bimodal, dist.transforms.ComposeTransform([transform, dist.transforms.AffineTransform(mean, s)])
     return flow_dist_bimodal, transform
 
 
 def normal_to_samples(A, normalize=False, count_bins=32, steps=1001, lr=1e-2):
-    A_normalized = StandardScaler().fit_transform(A) if normalize else A
+    #A_normalized = StandardScaler().fit_transform(A) if normalize else A
     base_dist = dist.Normal(torch.zeros(1), torch.ones(1))
 
-    return train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, A_normalized, steps, lr)
+    return train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, A, steps, lr, normalize)
 
 
-def samples_to_samples(A, B, normalize=False, count_bins=32, steps=1001, lr=1e-2):
+def samples_to_samples(A, B, count_bins=32, steps=1001, lr=1e-2):
     '''
     This function takes two list of samples and maps them with normalizing flows via a normal distribution
     :return:
     '''
 
-    A_normalized = StandardScaler().fit_transform(A) if normalize else A
-    B_normalized = StandardScaler().fit_transform(B) if normalize else B
+    normalize = False
+
+    #A_normalized = StandardScaler().fit_transform(A) if normalize else A
+    #B_normalized = StandardScaler().fit_transform(B) if normalize else B
 
     base_dist = dist.Normal(torch.zeros(1), torch.ones(1))
 
-    _, transform_normal_A = train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, A_normalized, steps, lr)
-    _, transform_normal_B = train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, B_normalized, steps, lr)
+    _, transform_normal_A = train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, A, steps, lr, normalize)
+    _, transform_normal_B = train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, B, steps, lr, normalize)
 
     return dist.transforms.ComposeTransform([transform_normal_A.inv, transform_normal_B])
 
