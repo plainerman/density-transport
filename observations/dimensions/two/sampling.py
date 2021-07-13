@@ -1,5 +1,6 @@
 import random
 import observations.dimensions.one.sampling as oneDimensionalObserve
+import numpy
 
 samplesizex = 500
 samplesizey = 500
@@ -27,5 +28,15 @@ def sample_beta_dir(delta=0.05):
     return ys
 
 
+def sample_beta_2(delta=0.3):
+    ys = []
 
+    xs = numpy.linspace(-1, 1, samplesizex)
+    beta1s = numpy.linspace(-1, 1, samplesizex)
+    for x in xs:
+        for beta1 in beta1s:
+            # x = step_sample(i, -1, 1, samplesizex)
+            # beta1 = step_sample(j, -1, 1, samplesizey)
+            ys.append([cusp([x, beta1]), cusp([x - delta, beta1]), cusp([x - 2 * delta, beta1])])
 
+    return ys
