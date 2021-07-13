@@ -5,12 +5,12 @@ import numpy as np
 
 
 def train(transform, base_dist, data, steps, lr, normalize):
-    mean = np.mean(data)
-    s = np.sqrt(np.var(data))
-
     if normalize:
-        # normalize with (x-u)/s
-        #data = (data - mean) / s
+        scaler = StandardScaler()
+        scaler.fit(data)
+
+        mean = torch.tensor(scaler.mean_, dtype=torch.float)
+        s = torch.tensor(np.sqrt(scaler.var_), dtype=torch.float)
         flow_dist_bimodal = dist.TransformedDistribution(base_dist, [transform, dist.transforms.AffineTransform(mean, s)])
     else:
         flow_dist_bimodal = dist.TransformedDistribution(base_dist, [transform])
@@ -30,12 +30,16 @@ def train(transform, base_dist, data, steps, lr, normalize):
         return flow_dist_bimodal, dist.transforms.ComposeTransform([transform, dist.transforms.AffineTransform(mean, s)])
     return flow_dist_bimodal, transform
 
-
 def normal_to_samples(A, normalize=False, count_bins=32, steps=1001, lr=1e-2):
     #A_normalized = StandardScaler().fit_transform(A) if normalize else A
     base_dist = dist.Normal(torch.zeros(1), torch.ones(1))
 
     return train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, A, steps, lr, normalize)
+
+def normal2d_to_samples(A, count_bins=16, steps=1001, lr=5e-3, normalize=False):
+    base_dist = dist.Normal(torch.zeros(2), torch.ones(2))
+
+    return train(dist.transforms.spline_coupling(2, count_bins=count_bins), base_dist, A, steps, lr, normalize=normalize)
 
 
 def samples_to_samples(A, B, count_bins=32, steps=1001, lr=1e-2):

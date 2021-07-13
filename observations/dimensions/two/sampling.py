@@ -2,8 +2,9 @@ import random
 import observations.dimensions.one.sampling as oneDimensionalObserve
 import numpy
 
-samplesizex = 500
-samplesizey = 500
+# TODO change to 500
+samplesizex = 100
+samplesizey = 100
 
 
 def cusp(xs):
