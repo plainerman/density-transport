@@ -29,7 +29,7 @@ def sample_beta_dir(delta=0.05):
     return ys
 
 
-def sample_beta_2(delta=0.3):
+def sample_beta_2(samplesizex=samplesizex, samplesizey=samplesizey, delta=0.3):
     ys = []
 
     xs = numpy.linspace(-1, 1, samplesizex)
