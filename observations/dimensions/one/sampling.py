@@ -13,7 +13,7 @@ def uniform_sample(i, a, b, samplesize):
 
 def T(x):
     # return -4*x*x + 4*x a non-injective transport map that produces no jump discontinuity
-    return 30 * (-2 * pow((1 - x), 3) + 1.5 * (1 - x) + 0.5)
+    return -2 * pow((1 - x), 3) + 1.5 * (1 - x) + 0.5
 
 
 def sample(observations, y_x_fun=T, sample_fun=step_sample, delta=0.1):
