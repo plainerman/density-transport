@@ -47,10 +47,10 @@ class RK4N(nn.Module):
         # Hidden layers.
         for i in range(self.num_hidden_layers - 1):
             name = 'h' + str(i)
-            f = self.hidden_layers[name](torch.sigmoid(f))  # TODO: what activation function?
+            f = self.hidden_layers[name](torch.sigmoid(f))
 
         # Output.
-        return self.output(torch.sigmoid(f))  # TODO: same here
+        return self.output(torch.sigmoid(f))
 
     def save(self, path):
         torch.save(self, path)
