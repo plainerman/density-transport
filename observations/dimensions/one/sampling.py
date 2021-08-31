@@ -10,11 +10,11 @@ def step_sample(i, a, b, samplesize):
 def uniform_sample(i, a, b, samplesize):
     return random.uniform(a, b)
 
+def T_continuous(x):
+    return -4*x*x + 4*x #a non-injective transport map that produces no jump discontinuity
 
 def T(x):
-    # return -4*x*x + 4*x a non-injective transport map that produces no jump discontinuity
     return -2 * pow((1 - x), 3) + 1.5 * (1 - x) + 0.5
-
 
 def sample(observations, y_x_fun=T, sample_fun=step_sample, delta=0.1):
     random.seed(0)

@@ -36,11 +36,13 @@ def normal_to_samples(A, normalize=False, count_bins=32, steps=1001, lr=1e-2):
 
     return train(dist.transforms.Spline(1, count_bins=count_bins), base_dist, A, steps, lr, normalize)
 
+def normalnd_to_samples(A, dim, count_bins=16, steps=1001, lr=5e-3, normalize=False):
+    base_dist = dist.Normal(torch.zeros(dim), torch.ones(dim))
+
+    return train(dist.transforms.spline_coupling(dim, count_bins=count_bins), base_dist, A, steps, lr, normalize=normalize)
+
 def normal2d_to_samples(A, count_bins=16, steps=1001, lr=5e-3, normalize=False):
-    base_dist = dist.Normal(torch.zeros(2), torch.ones(2))
-
-    return train(dist.transforms.spline_coupling(2, count_bins=count_bins), base_dist, A, steps, lr, normalize=normalize)
-
+    return normalnd_to_samples(A, 2, count_bins, steps, lr, normalize)
 
 def samples_to_samples(A, B, count_bins=32, steps=1001, lr=1e-2):
     '''
