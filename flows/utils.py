@@ -2,7 +2,7 @@ from sklearn.preprocessing import StandardScaler
 import pyro.distributions as dist
 import torch
 import numpy as np
-
+from tqdm import tqdm
 
 def train(transform, base_dist, data, steps, lr, normalize):
     if normalize:
@@ -17,15 +17,17 @@ def train(transform, base_dist, data, steps, lr, normalize):
 
     dataset = torch.tensor(data, dtype=torch.float)
     optimizer = torch.optim.Adam(transform.parameters(), lr=lr)
-    for step in range(steps):
+    iterator = tqdm(range(steps), desc="Training NF")
+    for step in iterator:
         optimizer.zero_grad()
         loss = -flow_dist_bimodal.log_prob(dataset).mean()
         loss.backward()
         optimizer.step()
         flow_dist_bimodal.clear_cache()
+        iterator.set_postfix(loss=loss.item())
 
-        if step % 200 == 0:
-            print('step: {}, loss: {}'.format(step, loss.item()))
+    iterator.close()
+
     if normalize:
         return flow_dist_bimodal, dist.transforms.ComposeTransform([transform, dist.transforms.AffineTransform(mean, s)])
     return flow_dist_bimodal, transform
